@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Chat Bot</title>
+	</head>
+	<body>
+		<center>
+			<div style="width: 50%; box-shadow: 0px 0px 10px; padding: 10px; text-align: " >
+			<div style="color: #838383; cursor: pointer;">
+				<a href="/main/?time=True">Auto Mailler</a> | <a href="#" onclick="removeUser()"> Remove </a> | <a href="/main/?refresh=True">Refresh</a>
+			</div>
+				<h1>Telegram Bot</h1>
+				<form>
+					<div style="width: 50%; box-shadow: 0px 0px 1px; padding: 5px; margin: 5px; text-align: left;">
+						{% for i, j in list %}
+						<input type="checkbox" name="{{i}}" />  {{ j }}<br/>
+						{%endfor%}
+					</div>
+					Send a Message<br/>
+					<textarea name="message" placeholder="Text Here"></textarea><br/>
+					<input type="submit" value="Send" />
+				</form>
+			</div>
+		</center>
+	</body>
+	<script type="text/javascript">
+		function removeUser(e){
+			a = prompt("Enter User Name : ");
+			if ( a ) {
+				location.assign("/main?remove="+a);
+			}
+		}
+	</script>
+</html>

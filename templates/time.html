@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Chat Bot</title>
+	</head>
+	<body>
+		<center>
+			<div style="width: 50%; box-shadow: 0px 0px 10px; padding: 10px; text-align: " >
+			<div style="color: #838383; cursor: pointer;">
+				<a href="time">Auto Mailler</a> | <span onClick="removeUser(event)">Remove</span> | <a href="/main/?refresh=True">Refresh</a>
+			</div>
+				<h1>Telegram Bot</h1>
+				<h3>Auto Mailler</h3>
+				<form>
+					<input type="date" name="date" /> 
+					<input type="time" name="time" /> <br/><br/>
+					<textarea name="" placeholder="Text Here"></textarea><br/>
+					<input type="submit" value="Send" />
+				</form>
+			</div>
+		</center>
+	</body>
+	<script type="text/javascript">
+		function removeUser(e){
+			a = prompt("Enter User Name : ");
+			if ( a ) {
+				location.assign("/main?remove="+a);
+			}
+		}
+	</script>
+</html>
