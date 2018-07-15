@@ -36,7 +36,7 @@ Connection closed!
 
 ### Getting all User Data
 
-To get the user information we have to make an instance of user class the following code shows how to get user data. \textit{getAllUser()} returns the list of all user available at database.
+To get the user information we have to make an instance of user class the following code shows how to get user data. *getAllUser()*  returns the list of all user available at database.
 
 ##### Code
 
@@ -47,8 +47,8 @@ print(u.getAllUser())
 
 ### Inserting New user
 
-Insert is refers to insert the data in SQL database which is Handel by bot. Bot takes user information either from Telegram Network or manually by calling \textit{save()}.
-\textit{save()} takes seven argument telegram user/group id, first name, user-name, active state, date or starting, date of ending and chat type as argument. and return true on success otherwise false.
+Insert is refers to insert the data in SQL database which is Handel by bot. Bot takes user information either from Telegram Network or manually by calling *save()* .
+*save()*  takes seven argument telegram user/group id, first name, user-name, active state, date or starting, date of ending and chat type as argument. and return true on success otherwise false.
 
 ##### Code
 
@@ -57,7 +57,7 @@ u.save(1, "first_name", "user", "Y", "25-12-2018", "No", "group")
 
 
 ### Removing User
-\textit{remove()} is used to remove a user from database. it takes one argument user id and return true if success otherwise false.
+*remove()*  is used to remove a user from database. it takes one argument user id and return true if success otherwise false.
 
 ##### Code
 
@@ -68,7 +68,7 @@ u.remove('1')
 
 
 ### Getting All Private Chats, ID
-\textit{getAllPrivate()} returns all user details with there user ID as matrix  and  \textit{getAllPrivateID()} returns all private chat id only as array. 
+*getAllPrivate()*  returns all user details with there user ID as matrix  and  *getAllPrivateID()*  returns all private chat id only as array. 
 ##### Code
 
 c = Chat()
@@ -79,7 +79,7 @@ print(c.getAllPrivateID())
 
 ### Getting All Group Chat
 
-To get all group information we have to call \textit{getAllGroup()} this takes none argument and return matrix of all group details.
+To get all group information we have to call *getAllGroup()*  this takes none argument and return matrix of all group details.
 
 ##### Code
 
@@ -90,7 +90,7 @@ print(c.getAllGroup())
 
 ### Getting All Time Dependent Message/Auto-Mail
 
-Time Dependent Message/Auto-Mail acts as a alarm. These message is send by Bot in specific time period. To get list of current auto-mail we have to call \textit{getAllMailler()} which return all auto-mail as table.
+Time Dependent Message/Auto-Mail acts as a alarm. These message is send by Bot in specific time period. To get list of current auto-mail we have to call *getAllMailler()*  which return all auto-mail as table.
 
 ##### Code
 
@@ -100,7 +100,7 @@ print(a.getAllMailler())
 
 
 ### Adding New Auto-Mail
-\textit{newMailler()} used to set a new automail. It takes time and message and return true if successfully add.
+*newMailler()*  used to set a new automail. It takes time and message and return true if successfully add.
 
 ##### Code
 
@@ -111,7 +111,7 @@ print(a.newMailler(time_hh_mm, 'This is sample Text genrated by AutoMailer'))
 
 ### Removing a Auto-Mail
 
-\textit{deleteMailler()} deleted the automatic mail. It takes time and message and return true if successfully remove.
+*deleteMailler()*  deleted the automatic mail. It takes time and message and return true if successfully remove.
 ##### Calling
 
 a = AutoMailer()
@@ -120,7 +120,7 @@ print(a.deleteMailler(ti, 'This is sample Text genrated by AutoMailer'))
 
 
 ### Run The Automailer
-Automailer send message in every 24hr interal i.e it's repeat its cycle in every day. but we have to invoke a method \textit{run()} to activate.
+Automailer send message in every 24hr interal i.e it's repeat its cycle in every day. but we have to invoke a method *run()*  to activate.
 
 ##### Code
 
@@ -130,7 +130,7 @@ a.run()
 
 ### Open a User Registration
 
-In this chat bot manager you can add new user for specific time to start registration you have to invoke the \textit{run()} method of Registration. and exiting the app can close the registration.
+In this chat bot manager you can add new user for specific time to start registration you have to invoke the *run()*  method of Registration. and exiting the app can close the registration.
 
 ##### Code
 
@@ -140,7 +140,7 @@ r.run()
 
 
 ### Add a Search Key
-Search Key is a search item which can be search by user using \textit{search} command in telegram app. Following code can insert a search item. 
+Search Key is a search item which can be search by user using *search()* command in telegram app. Following code can insert a search item. 
 
 ##### Code
 
@@ -151,7 +151,7 @@ print(r.insertSerch("key2", "This is key2.", "12:30", "23:30"))
 
 
 ### Delete a Search Key
-\textit{deleteSearch()} is used to delete a search item. It takes two parameter key and meassage and return if success.
+*deleteSearch()*  is used to delete a search item. It takes two parameter key and meassage and return if success.
 
 ##### Code
 
@@ -161,7 +161,7 @@ print(r.deleteSearch("key2", "This is key2."))
 
 
 ### Listen User Inputs
-Like other chat-bot this manager also listen to user and response as per input command currently chat-bot respond on start, help and search command. to start listening call the \textit{polling()} method
+Like other chat-bot this manager also listen to user and response as per input command currently chat-bot respond on start, help and search command. to start listening call the *polling()*  method
 
 ##### Code
 
