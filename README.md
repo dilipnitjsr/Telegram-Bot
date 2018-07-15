@@ -1,4 +1,4 @@
-## User Manual
+# User Manual
 
 This API provides a command line interface for managing a bot in simple way. Using this API you can manage you bot easily with distributive system. API get details of registered user save it to own database and it is capable to send msg at any time.
 
