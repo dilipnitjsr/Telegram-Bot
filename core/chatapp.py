@@ -21,9 +21,10 @@ Database : <??>
 
 """
 
+
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import telegram
-import numpy
+import math
 import pandas as pd
 import os
 
@@ -74,7 +75,13 @@ class Bot:
 		self.__db_chatlist = 'chatlist'
 		self.__db_mailler = 'automailer'
 		self.__db_search = 'search'
-		self.__conn = 0
+		self.__conn = False
+		try:
+			self.open()
+		except Exception:
+			print("Internet Error...")
+			pass
+
 	def open(self):
 		"""
 		Open new connection
@@ -91,16 +98,18 @@ class Bot:
 		Close the connection
 		"""
 		print("Connection closed!")
-		self.__conn.close()
+		if self.__conn:
+			self.__conn.close()
 
 	def __del__(self):
 		"""
 			Close the connection
 		"""
-		if self.__conn:
+		try:
 			print("Connection closed!")
 			self.__conn.close()
-
+		except Exception:
+			pass
 	def getConn(self):
 		"""
 		@return : __conn
@@ -144,7 +153,9 @@ class Bot:
 					print ("Send : "+ str(contact))
 					break
 				except Exception as e:
-					print(e)
+					if (e == 'block__error'):
+						#TODO:
+						break
 					print ("Error : "+ str(contact))
 					self.__removeList.append(contact)
 		return True
@@ -160,7 +171,7 @@ class User(Bot):
 	--User Class
 	"""
 	def __init__(self):
-		Bot.__init__()
+		Bot.__init__(self)
 		print("Initilizing... User")
 
 	def remove(self, user_id):
@@ -170,19 +181,16 @@ class User(Bot):
 		@return : True|False
 		"""
 		try:
-			self.open()
 			conn = self.getConn()
 			cur = conn.cursor()
 			cur.execute("DELETE FROM chatlist WHERE id = %s;", (user_id,))
 			self.getConn().commit()
 			cur.close()
-			self.close()
 			return True
 		except psycopg2.DatabaseError as e:
 			if conn:
 				conn.rollback()
 			print ('Error : %s' % e)
-			self.close()
 			return False
 
 	def getAllUser(self):
@@ -190,7 +198,6 @@ class User(Bot):
 		All user from SQL Database
 		"""
 		try:
-			self.open()
 			conn = self.getConn()
 			cur = conn.cursor()
 			cur.execute("SELECT * FROM chatlist")
@@ -209,28 +216,50 @@ class User(Bot):
 		df = pd.DataFrame(tmp_list, columns=['id', 'first_name', 'username', 'active', 'start', 'end', 'type'])
 		self.getConn().commit()
 		cur.close()
-		self.close()
 		return df
 
+	def save(self, dataframe, table):
+		try:
+			conn = self.getConn()
+			cur = conn.cursor()
+			dataframe.to_sql(table, index=False )
+			self.getConn().commit()
+			cur.close()
+			return True
+		except psycopg2.DatabaseError as e:
+			if conn:
+				conn.rollback()
+			print ('Error : %s' % e)
+			return False
 	def save(self, id_row, first_name, username, active, start, end, type_row):
 		"""
 		Insert in database 
 		@return : True|False
 		"""
 		try:
-			self.open()
 			conn = self.getConn()
 			cur = conn.cursor()
-			cur.execute("INSERT INTO chatlist (id, first_name, username, active, start_date, end_date, type) VALUES (%s, %s, %s, %s, %s, %s, %s);", (id_row, first_name, username, active, start, end, type_row))
+			cur.execute("INSERT INTO chatlist (id, first_name, username, active, start_date, end_date, type, payment) VALUES (%s, %s, %s, %s, %s, %s, %s);", (id_row, first_name, username, active, start, end, type_row, 'NO'))
 			self.getConn().commit()
 			cur.close()
-			self.close()
 			return True
 		except psycopg2.DatabaseError as e:
 			if conn:
 				conn.rollback()
 			print ('Error : %s' % e)
-			self.close()
+			return False
+	def update(self,user_id, field, value):
+		try:
+			conn = self.getConn()
+			cur = conn.cursor()
+			cur.execute("UPDATE chatlist SET %s = %s WHERE id = %s", (field, value, user_id))
+			self.getConn().commit()
+			cur.close()
+			return True
+		except psycopg2.DatabaseError as e:
+			if conn:
+				conn.rollback()
+			print ('Error : %s' % e)
 			return False
 
 class Chat(User):
@@ -238,7 +267,7 @@ class Chat(User):
 	--Chat Class
 	"""
 	def __init__(self):
-		User.__init__()
+		User.__init__(self)
 		print("Initilizing... Chat")
 
 	def getAllGroup(self):
@@ -288,7 +317,7 @@ class AutoMailer(User):
 	Example : 12/06/2018, 16:18:30
 	"""
 	def __init__(self):
-		User.__init__()
+		User.__init__(self)
 		print("Initilizing... AutoMailer")
 
 	def getAllMailler(self):
@@ -296,13 +325,11 @@ class AutoMailer(User):
 		return all mailling shedule in database
 		@return pandas.DataFrame
 		"""
+		tmp_list = [] 
 		try:
-			self.open()
 			conn = self.getConn()
 			cur = conn.cursor()
-			cur.execute("SELECT * FROM automailer")
-
-			tmp_list = [] 
+			cur.execute("SELECT time, message FROM automailer ORDER BY time ASC")
 			while True:
 				row = cur.fetchone()
 				if row == None:
@@ -316,7 +343,6 @@ class AutoMailer(User):
 		df = pd.DataFrame(tmp_list, columns=['time', 'message'])
 		self.getConn().commit()
 		cur.close()
-		self.close()
 		return df
 
 	def newMailler(self, msgTime, message):
@@ -325,19 +351,16 @@ class AutoMailer(User):
 		@return : True| False
 		"""
 		try:
-			self.open()
 			conn = self.getConn()
 			cur = conn.cursor()
 			cur.execute("INSERT INTO automailer (time, message) VALUES (%s, %s);", (msgTime, message))
 			self.getConn().commit()
 			cur.close()
-			self.close()
 			return True
 		except psycopg2.DatabaseError as e:
 			if conn:
 				conn.rollback()
 			print ('Error : %s' % e)
-			self.close()
 			return False
 
 	def deleteMailler(self, mail_time, message):
@@ -346,19 +369,16 @@ class AutoMailer(User):
 		@return : True| False		
 		"""
 		try:
-			self.open()
 			conn = self.getConn()
 			cur = conn.cursor()
 			cur.execute("DELETE FROM automailer WHERE time = %s AND message = %s;", (mail_time, message))
 			self.getConn().commit()
 			cur.close()
-			self.close()
 			return True
 		except psycopg2.DatabaseError as e:
 			if conn:
 				conn.rollback()
 			print ('Error : %s' % e)
-			self.close()
 			return False
 
 	def run(self):
@@ -366,29 +386,60 @@ class AutoMailer(User):
 		Run a thread for sending automatic mail 
 		start a thread __sheduler() 
 		"""
-		thread = threading.Thread(target = self.__sheduler, args=[])
-		thread.start()
+		self.sheduler_thread = threading.Thread(target = self.__sheduler, args=[])
+		self.sheduler_thread.start()
+		self.sheduler_thread.join()
+		# sheduler_thread._Thread_stop()
 		print("To take effect of edit in database, AutoMailer have to restart.")
 
-	def __sheduler(self):
+	def __sheduler(self, sleepTime=1):
 		"""
 		takes data form getAllMailler()
 		Run in a loop and match time and send mail accordingly
 		"""
-		mails = self.getAllMailler()
-		timeList = list(mails['time'])
-		message = list(mails['message'])
-		user_list = self.getAllUser()
-		user_list = user_list.loc[user_list['active'].isin(["Y"])]
-		user_list = list(user_list["id"])
 		while True:
+			mails = self.getAllMailler()
+			mail_time = list(mails['time'][0])
 			cu_time =  time.strftime("%d/%m/%Y, %H:%M:%S")
-			if cu_time in timeList:
-				idx = timeList.index(cu_time) 
-				self.send(user_list, message[idx])
-				print("Send to : " + str(user_list))
-			time.sleep(1)
+			message = list(mails['message'][0])
 
+			user_list = self.getAllUser()
+			user_list = user_list.loc[user_list['active'].isin(["Y"])]
+			user_list = list(user_list["id"])
+			if cu_time == mail_time:
+				self.send(user_list, message)
+				print("Send to : " + str(user_list))
+				self.deleteMailler(mail_time, message)
+			time.sleep(sleepTime)
+
+	def __getLastInsID(self):
+		last_id = 0
+		try:
+			conn = self.getConn()
+			cur = conn.cursor()
+			cur.execute("SELECT max(id) FROM automailer")
+			while True:
+				row = cur.fetchone()
+				if row == None:
+					break
+				last_id = row
+				break
+		except psycopg2.DatabaseError as e:
+			print ('Error %s' % e)
+		self.getConn().commit()
+		cur.close()
+		return last_id
+
+	def __scanDatabase(self):
+		last_ins_id = self.__getLastInsID()
+		while True:
+			new_ins_id = self.__getLastInsID()
+			print(last_ins_id, new_ins_id)
+			if last_ins_id != new_ins_id:
+				self.sheduler_thread = threading.Thread(target = self.__sheduler, args=[])
+				self.sheduler_thread.start()
+				return True
+			time.sleep(1)
 
 class Regestration(Chat):
 	"""
@@ -396,7 +447,7 @@ class Regestration(Chat):
 
 	"""
 	def __init__(self):
-		Chat.__init__()
+		Chat.__init__(self)
 		print("Initilizing... Regestration")
 
 	def run(self):
@@ -414,7 +465,6 @@ class Regestration(Chat):
 		@return : pandas.DataFrame
 		"""
 		try:
-			self.open()
 			conn = self.getConn()
 			cur = conn.cursor()
 			cur.execute("SELECT * FROM search WHERE key = '"+key+"'")
@@ -433,7 +483,6 @@ class Regestration(Chat):
 		df = pd.DataFrame(tmp_list, columns=['key','message','timeForm','timeTo'])
 		self.getConn().commit()
 		cur.close()
-		self.close()
 		return df
 	def deleteSearch(self, key, message):
 		"""
@@ -441,19 +490,16 @@ class Regestration(Chat):
 		@return : True|False
 		"""
 		try:
-			self.open()
 			conn = self.getConn()
 			cur = conn.cursor()
 			cur.execute("DELETE FROM search WHERE key= %s AND message= %s;", (key, message))
 			self.getConn().commit()
 			cur.close()
-			self.close()
 			return True
 		except psycopg2.DatabaseError as e:
 			if conn:
 				conn.rollback()
 			print ('Error : %s' % e)
-			self.close()
 			return False
 
 
@@ -463,19 +509,16 @@ class Regestration(Chat):
 		@return : True|False
 		"""
 		try:
-			self.open()
 			conn = self.getConn()
 			cur = conn.cursor()
 			cur.execute("INSERT INTO search (key, message, timeform	, timeto) VALUES (%s, %s, %s, %s);", (key.lower(), message, timeForm, timrTo))
 			self.getConn().commit()
 			cur.close()
-			self.close()
 			return True
 		except psycopg2.DatabaseError as e:
 			if conn:
 				conn.rollback()
 			print ('Error : %s' % e)
-			self.close()
 			return False
 
 	def getReg(self):
@@ -510,6 +553,7 @@ class Regestration(Chat):
 
 		dp.add_handler(CommandHandler("start", self.__start))
 		dp.add_handler(CommandHandler("help", self.__help))
+		dp.add_handler(CommandHandler("payment", self.__payment))
 		dp.add_handler(CommandHandler("search", self.__search, pass_args=True))
 		dp.add_handler(MessageHandler(Filters.text, self.__echo))
 
@@ -527,7 +571,14 @@ class Regestration(Chat):
 		"""
 		reply List of available command to command issuer
 		"""
-		update.message.reply_text('/start : New Regestration\n /help : list of all command\n/search: Search ')
+		update.message.reply_text('/start : New Regestration\n /help : list of all command\n/search: Search \n/payment: Pay')
+	
+	def __payment(self, bot, update):
+			"""
+			reply List of available command to command issuer
+			"""
+			update.message.reply_text('Pay at https://imjo.in/kaJYkC or https://www.example.com/'+str(update.message.chat.username))
+
 
 	def __search(self, bot, update, args):
 		"""
@@ -593,7 +644,10 @@ print(a.newMailler(ti, 'This is sample Text genrated by AutoMailer'))
 print(a.deleteMailler(ti, 'This is sample Text genrated by AutoMailer'))
 a.run()
 """
+a = AutoMailer()
 
+# print(a.newMailler(ti, 'This is sample Text genrated by AutoMailer'))
+a.run()
 """
 r = Regestration()
 r.run()
