@@ -21,7 +21,6 @@ Database : <??>
 
 """
 
-
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import telegram
 import math
@@ -218,7 +217,7 @@ class User(Bot):
 		cur.close()
 		return df
 
-	def save(self, dataframe, table):
+	def saveToSQL(self, dataframe, table):
 		try:
 			conn = self.getConn()
 			cur = conn.cursor()
@@ -309,6 +308,18 @@ class Chat(User):
 			return True
 		except Exception as e:
 			return False
+	def getTelegram(self):
+		"""
+		Get details form internet
+		"""
+		ids =[]
+		updates = self.getBot().get_updates()
+		for details in updates:
+			
+			if not details.message.chat.username:
+				details.message.chat.username = details.message.chat.title
+			ids.append([details.message.chat_id, details.message.chat.first_name, details.message.chat.username, 'Y',  details.message.date, 'No', details.message.chat.type ])
+		return pd.DataFrame(ids, columns=['id', 'first_name', 'username', 'active', 'start', 'end', 'type'])
 
 class AutoMailer(User):
 	"""
@@ -623,6 +634,16 @@ b.open()
 b.close()
 del b
 """
+import numpy as np
+np.set_printoptions(threshold=np.nan)
+
+
+u = Chat()
+db = u.getTelegram()
+db['first_name'][0] = 'abc'
+print(db.as_matrix())
+
+
 """
 u = User()
 print(u.getAllUser())
@@ -644,10 +665,6 @@ print(a.newMailler(ti, 'This is sample Text genrated by AutoMailer'))
 print(a.deleteMailler(ti, 'This is sample Text genrated by AutoMailer'))
 a.run()
 """
-a = AutoMailer()
-
-# print(a.newMailler(ti, 'This is sample Text genrated by AutoMailer'))
-a.run()
 """
 r = Regestration()
 r.run()
