@@ -50,6 +50,7 @@ db_port = 5432
 db_database = '<??>'
 
 
+
 class Bot:
 	"""
 	Bot() is a center class of API.
@@ -152,11 +153,11 @@ class Bot:
 					print ("Send : "+ str(contact))
 					break
 				except Exception as e:
-					if (e == 'block__error'):
-						#TODO:
-						break
 					print ("Error : "+ str(contact))
-					self.__removeList.append(contact)
+					if str(e) == "Forbidden: bot was blocked by the user":
+						self.__removeList.append(contact)
+						break
+					print ("Retrying...")
 		return True
 
 	def getRemoveList(self):
@@ -238,7 +239,7 @@ class User(Bot):
 		try:
 			conn = self.getConn()
 			cur = conn.cursor()
-			cur.execute("INSERT INTO chatlist (id, first_name, username, active, start_date, end_date, type, payment) VALUES (%s, %s, %s, %s, %s, %s, %s);", (id_row, first_name, username, active, start, end, type_row, 'NO'))
+			cur.execute("INSERT INTO chatlist (id, first_name, username, active, start_date, end_date, type, payment) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);", (id_row, first_name, username, active, start, end, type_row, 'NO'))
 			self.getConn().commit()
 			cur.close()
 			return True
@@ -571,25 +572,34 @@ class Regestration(Chat):
 		updater.start_polling()
 		updater.idle()
 
+	def __dynamicSearch(self, bot, update, args):
+		pass
 	def __echo(self, bot, update):
 		"""
 		Echo for non CommandHandler sms
 		"""
-		if update.message.chat_id in self.getAllPrivate:
-			update.message.reply_text("Invalid")
+		self.__search(bot, update, [update.message.text])
+		# try:
+		# 	update.message.reply_text("Invalid")
+		# except Exception:
+		# 		print("Bot Blocked")
 
 	def __help(self, bot, update):
 		"""
 		reply List of available command to command issuer
 		"""
-		update.message.reply_text('/start : New Regestration\n /help : list of all command\n/search: Search \n/payment: Pay')
-	
+		try:
+			update.message.reply_text('/start : New Regestration\n /help : list of all command\n/search: Search \n/payment: Pay')
+		except Exception:
+			print("Bot Blocked")
 	def __payment(self, bot, update):
 			"""
 			reply List of available command to command issuer
 			"""
-			update.message.reply_text('Pay at https://imjo.in/kaJYkC or https://www.example.com/'+str(update.message.chat.username))
-
+			try:
+				update.message.reply_text('Pay at https://imjo.in/kaJYkC or https://www.example.com/'+str(update.message.chat.username))
+			except Exception as e:
+				print(e)
 
 	def __search(self, bot, update, args):
 		"""
@@ -605,11 +615,12 @@ class Regestration(Chat):
 				to_h, to_m = row["timeTo"].split(":")
 				if self.__in_between(datetime.now().time(), time_format(int(form_h),int(form_m)), time_format(int(to_h), int(to_m))):
 					res = res + '\n' +row["message"]
-				update.message.reply_text(res)
+			update.message.reply_text(res)
 		except Exception as e:
-			print(e)
-			update.message.reply_text('Please enter the text.')
-
+			try:
+				update.message.reply_text('Please enter the text.')
+			except Exception as ex:
+				print(ex)
 	def __start(self, bot, update):
 		"""
 		Send a message when the command /start is issued.
@@ -623,7 +634,10 @@ class Regestration(Chat):
 		
 		print(str(update.message.chat.username)+"( "+str(update.message.chat_id)+" ) Added..")
 		print(str(update.message.chat.username)+"( "+str(update.message.from_user.id)+" ) Added..")
-		update.message.reply_text('Regestration Success...\nType /help to get the list of all command')
+		try:
+			update.message.reply_text('Regestration Success...\nType /help to get the list of all command')
+		except Exception as e:
+			print(e)
 
 
 ti =  time.strftime("%d/%m/%Y, %H:%M:%S")
@@ -638,11 +652,8 @@ import numpy as np
 np.set_printoptions(threshold=np.nan)
 
 
-u = Chat()
-db = u.getTelegram()
-db['first_name'][0] = 'abc'
-print(db.as_matrix())
-
+r = Regestration()
+r.polling()
 
 """
 u = User()
