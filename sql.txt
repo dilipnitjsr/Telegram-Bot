@@ -1,0 +1,23 @@
+CREATE TABLE "automailler" (
+  "id" SERIAL CONSTRAINT "pk_automailler" PRIMARY KEY,
+  "time" TIMESTAMP NOT NULL,
+  "message" TEXT NOT NULL
+);
+
+CREATE TABLE "chatlist" (
+  "id" INTEGER CONSTRAINT "pk_chatlist" PRIMARY KEY,
+  "first_name" TEXT NOT NULL,
+  "username" TEXT NOT NULL,
+  "active" TEXT NOT NULL,
+  "start_date" TIMESTAMP NOT NULL,
+  "end_date" TIMESTAMP NOT NULL,
+  "type" TEXT NOT NULL
+);
+
+CREATE TABLE "search" (
+  "id" SERIAL CONSTRAINT "pk_search" PRIMARY KEY,
+  "key" INTEGER NOT NULL,
+  "message" TEXT NOT NULL,
+  "timeform" TIMESTAMP NOT NULL,
+  "timeto" TEXT NOT NULL
+)

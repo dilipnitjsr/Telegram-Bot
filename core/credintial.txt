@@ -1,0 +1,7 @@
+User these credintil before run
+Token = "615128532:AAGYHWB16Q-6XuItcpVureamKHzwGJMBQxE"
+db_username = 'usjhqhcx'
+db_password = 'C2NBHJ9pSOBzvjrAvVbeczaSQ-T4LRV7'
+db_host = 'stampy.db.elephantsql.com'
+db_port = 5432
+db_database = 'usjhqhcx'
