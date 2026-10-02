@@ -1,0 +1,32 @@
+name: Security Checks
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secret-pattern-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan tracked files for Telegram and database credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TELEGRAM_PATTERN='[0-9]{6,12}:[A-Za-z0-9_-]{20,}'
+          DATABASE_PATTERN='(postgres(ql)?://[^[:space:]]+:[^[:space:]@]+@|db_password[[:space:]]*=[[:space:]]*["'\'''][^<"'\'']{6,})'
+
+          if git grep -nEI "$TELEGRAM_PATTERN|$DATABASE_PATTERN" --             ':!.env.example'             ':!SECURITY.md'; then
+            echo "Potential live credential detected in a tracked file."
+            exit 1
+          fi
+
+          echo "No high-risk Telegram/database credential patterns found."
