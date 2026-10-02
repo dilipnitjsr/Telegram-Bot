@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Local databases and generated user data
+*.sqlite3
+*.db
+chatlist.csv
+automailer.csv
+search.csv
+
+# Editor/OS files
+.DS_Store
+.vscode/
+.idea/
