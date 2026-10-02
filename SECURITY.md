@@ -2,22 +2,30 @@
 
 This repository is public. Never commit Telegram bot tokens, database credentials, chat IDs, exported user lists, or production database files.
 
-## Previously exposed Telegram token
+## Previously exposed credentials and user data
 
-An older revision contained a Telegram bot token in source code. Treat that token as compromised even though the current branch removes it.
+Historical revisions contained:
 
-Rotate the bot token using BotFather before reusing this project:
+- a Telegram bot token;
+- database connection credentials;
+- Telegram chat IDs/usernames in generated CSV files;
+- a tracked SQLite database.
 
-1. Revoke the old token.
-2. Generate a new token.
-3. Store the replacement only in the runtime environment as `TELEGRAM_BOT_TOKEN`.
-4. Confirm the old token no longer works.
+Treat the historical Telegram token and database credentials as compromised even though the current branch removes them.
+
+Before reusing this project:
+
+1. Revoke the old Telegram token with BotFather and generate a new token.
+2. Rotate/delete the historical database user/password; create a new least-privilege application database account.
+3. Store replacement values only in runtime environment variables.
+4. Confirm the old Telegram token and database credentials no longer work.
+5. Review Telegram/database provider logs where available for unexpected historical access.
 
 ## Database privacy
 
-The repository previously tracked `db.sqlite3`. Telegram chat IDs, usernames, names, or registration records are personal data and must not be committed to a public repository.
+Telegram chat IDs, usernames, names, and registration records are personal data and must not be committed to a public repository.
 
-Use a private production database and a least-privilege database account. Store credentials in environment variables only.
+Use a private production database and a least-privilege database account. Local SQLite databases and generated CSV files are ignored by Git.
 
 ## Required environment variables
 
