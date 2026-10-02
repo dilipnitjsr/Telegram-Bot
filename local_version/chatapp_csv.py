@@ -1,5 +1,4 @@
 
-#615128532:AAGYHWB16Q-6XuItcpVureamKHzwGJMBQxE
 #pip install python-telegram-bot --upgrade
 #pip install numpy
 #pip install pandas
@@ -7,13 +6,14 @@ import telegram
 import numpy
 import pandas as pd
 import datetime
+import os
 
 class Bot:
 	__removeList = []
 	def __init__(self):
 		super(Bot, self).__init__()
 		#token form bot father
-		self.__bot = telegram.Bot(token='615128532:AAGYHWB16Q-6XuItcpVureamKHzwGJMBQxE')
+		self.__bot = telegram.Bot(token=os.environ['TELEGRAM_BOT_TOKEN'])
 	
 	def getBot(self):
 		return self.__bot
