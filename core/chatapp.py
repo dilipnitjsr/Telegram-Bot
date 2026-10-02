@@ -1,24 +1,7 @@
-"""
-4 June 2018
+"""Legacy Telegram bot manager.
 
-Telegram API Key
-
-<??>
-
-Dependencies
-
-pip install python-telegram-bot --upgrade
-pip install numpy
-pip install pandas
-pip install psycopg2
-
-Cradensials 
-
-Login Page : <??>
-Email : prashant.rcciit@acm.org
-Password : <??>
-Database : <??>
-
+Runtime credentials must be provided through environment variables.
+Do not commit bot tokens, database passwords, or user/chat databases.
 """
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -42,12 +25,18 @@ logging.basicConfig(format='[ %(asctime)s ]  %(name)s : %(levelname)s - %(messag
 
 logger = logging.getLogger(__name__)
 
-Token = "<??>"
-db_username = '<??>'
-db_password = '<??>'
-db_host = '<??>'
-db_port = 5432
-db_database = '<??>'
+def _required_env(name):
+	value = os.environ.get(name)
+	if not value:
+		raise RuntimeError("Required environment variable {} is not set".format(name))
+	return value
+
+Token = _required_env("TELEGRAM_BOT_TOKEN")
+db_username = _required_env("DB_USER")
+db_password = _required_env("DB_PASSWORD")
+db_host = _required_env("DB_HOST")
+db_port = int(os.environ.get("DB_PORT", "5432"))
+db_database = _required_env("DB_NAME")
 
 
 
@@ -147,17 +136,17 @@ class Bot:
 		"""
 		self.__removeList = []
 		for contact in contactList:
-			while True:
+			for attempt in range(3):
 				try:
 					self.__bot.send_message(chat_id=contact, text=message)
-					print ("Send : "+ str(contact))
+					logger.info("Message sent to chat_id=%s", contact)
 					break
-				except Exception as e:
-					print ("Error : "+ str(contact))
-					if str(e) == "Forbidden: bot was blocked by the user":
+				except Exception:
+					if attempt == 2:
+						logger.warning("Message delivery failed for chat_id=%s", contact)
 						self.__removeList.append(contact)
-						break
-					print ("Retrying...")
+					else:
+						time.sleep(1)
 		return True
 
 	def getRemoveList(self):
@@ -248,18 +237,28 @@ class User(Bot):
 				conn.rollback()
 			print ('Error : %s' % e)
 			return False
-	def update(self,user_id, field, value):
+	def update(self, user_id, field, value):
+		allowed_fields = {
+			"first_name", "username", "active", "start_date",
+			"end_date", "type", "payment"
+		}
+		if field not in allowed_fields:
+			raise ValueError("Unsupported chatlist field")
+
 		try:
 			conn = self.getConn()
 			cur = conn.cursor()
-			cur.execute("UPDATE chatlist SET %s = %s WHERE id = %s", (field, value, user_id))
+			cur.execute(
+				"UPDATE chatlist SET {} = %s WHERE id = %s".format(field),
+				(value, user_id)
+			)
 			self.getConn().commit()
 			cur.close()
 			return True
-		except psycopg2.DatabaseError as e:
+		except psycopg2.DatabaseError:
 			if conn:
 				conn.rollback()
-			print ('Error : %s' % e)
+			logger.exception("Unable to update chatlist record")
 			return False
 
 class Chat(User):
@@ -479,7 +478,7 @@ class Regestration(Chat):
 		try:
 			conn = self.getConn()
 			cur = conn.cursor()
-			cur.execute("SELECT * FROM search WHERE key = '"+key+"'")
+			cur.execute("SELECT * FROM search WHERE key = %s", (key,))
 
 			tmp_list = [] 
 			while True:
@@ -632,8 +631,7 @@ class Regestration(Chat):
 		self.save(update.message.chat_id, update.message.chat.first_name, update.message.chat.username, 'Y',  update.message.date, 'No', update.message.chat.type)
 		self.save(update.message.from_user.id, update.message.from_user.first_name, update.message.from_user.username, 'Y',  update.message.date, 'No', 'private')
 		
-		print(str(update.message.chat.username)+"( "+str(update.message.chat_id)+" ) Added..")
-		print(str(update.message.chat.username)+"( "+str(update.message.from_user.id)+" ) Added..")
+		logger.info("Telegram registration stored successfully")
 		try:
 			update.message.reply_text('Regestration Success...\nType /help to get the list of all command')
 		except Exception as e:
