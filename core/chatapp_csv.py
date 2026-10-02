@@ -1,5 +1,4 @@
 
-#615128532:AAGYHWB16Q-6XuItcpVureamKHzwGJMBQxE
 #pip install python-telegram-bot --upgrade
 #pip install numpy
 #pip install pandas
@@ -10,8 +9,9 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import telegram
 import numpy
 import pandas as pd
+import os
 
-Token = "<?Token?>"
+Token = os.environ['TELEGRAM_BOT_TOKEN']
 class Bot:
 
 	__removeList = []
